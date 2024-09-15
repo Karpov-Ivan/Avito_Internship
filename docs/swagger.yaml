@@ -1,0 +1,548 @@
+basePath: /
+definitions:
+  models.Proposal:
+    properties:
+      author_id:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      organization_id:
+        type: string
+      status:
+        type: string
+      tender_id:
+        type: string
+      title:
+        type: string
+      updated_at:
+        type: string
+      version:
+        type: integer
+    required:
+    - author_id
+    - id
+    - organization_id
+    - status
+    - tender_id
+    - title
+    - version
+    type: object
+  models.Tender:
+    properties:
+      created_at:
+        type: string
+      creatorUsername:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      organizationId:
+        type: string
+      serviceType:
+        type: string
+      status:
+        type: string
+      title:
+        type: string
+      updated_at:
+        type: string
+      version:
+        type: integer
+    required:
+    - creatorUsername
+    - id
+    - organizationId
+    - serviceType
+    - status
+    - title
+    - version
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API server for Avito
+  title: API Avito
+  version: "1.0"
+paths:
+  /api/bids/{bidId}/cancel:
+    put:
+      description: Делает предложение видимым только автору и ответственным за организацию
+      parameters:
+      - description: ID предложения
+        in: path
+        name: bidId
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Предложение успешно отменено
+          schema:
+            type: string
+        "400":
+          description: Неверный ID предложения
+          schema:
+            type: string
+        "500":
+          description: Ошибка при отмене предложения
+          schema:
+            type: string
+      summary: Отмена предложения
+      tags:
+      - Proposals
+  /api/bids/{bidId}/edit:
+    patch:
+      consumes:
+      - application/json
+      description: Редактирует предложение по указанному ID
+      parameters:
+      - description: ID предложения
+        in: path
+        name: bidId
+        required: true
+        type: string
+      - description: Данные для обновления предложения
+        in: body
+        name: proposal
+        required: true
+        schema:
+          $ref: '#/definitions/models.Proposal'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Обновленное предложение
+          schema:
+            $ref: '#/definitions/models.Proposal'
+        "400":
+          description: Неверный ID предложения или некорректные данные
+          schema:
+            type: string
+        "500":
+          description: Ошибка при редактировании предложения
+          schema:
+            type: string
+      summary: Редактирование предложения
+      tags:
+      - Proposals
+  /api/bids/{bidId}/publish:
+    put:
+      description: Делает предложение доступным для ответственных за организацию и
+        автора
+      parameters:
+      - description: ID предложения
+        in: path
+        name: bidId
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Предложение успешно опубликовано
+          schema:
+            type: string
+        "400":
+          description: Неверный ID предложения
+          schema:
+            type: string
+        "500":
+          description: Ошибка при публикации предложения
+          schema:
+            type: string
+      summary: Публикация предложения
+      tags:
+      - Proposals
+  /api/bids/{bidId}/rollback/{version}:
+    put:
+      description: Откатывает предложение к указанной версии по ID предложения
+      parameters:
+      - description: ID предложения
+        in: path
+        name: bidId
+        required: true
+        type: string
+      - description: Версия предложения
+        in: path
+        name: version
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Откатанное предложение
+          schema:
+            $ref: '#/definitions/models.Proposal'
+        "400":
+          description: Неверный ID предложения или версия
+          schema:
+            type: string
+        "500":
+          description: Ошибка при откате предложения
+          schema:
+            type: string
+      summary: Откат версии предложения
+      tags:
+      - Proposals
+  /api/bids/{tenderId}/list:
+    get:
+      description: Возвращает список всех предложений, связанных с указанным тендером
+      parameters:
+      - description: ID тендера
+        in: path
+        name: tenderId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список предложений для указанного тендера
+          schema:
+            items:
+              $ref: '#/definitions/models.Proposal'
+            type: array
+        "400":
+          description: Неверный ID тендера
+          schema:
+            type: string
+        "500":
+          description: Ошибка при получении предложений
+          schema:
+            type: string
+      summary: Получение предложений по тендеру
+      tags:
+      - Proposals
+  /api/bids/my:
+    get:
+      description: Возвращает предложения, связанные с указанным пользователем
+      parameters:
+      - description: Имя пользователя
+        in: query
+        name: username
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список предложений пользователя
+          schema:
+            items:
+              $ref: '#/definitions/models.Proposal'
+            type: array
+        "400":
+          description: Имя пользователя отсутствует
+          schema:
+            type: string
+        "500":
+          description: Ошибка при получении предложений
+          schema:
+            type: string
+      summary: Получение предложений пользователя
+      tags:
+      - Proposals
+  /api/bids/new:
+    post:
+      consumes:
+      - application/json
+      description: Создает новое предложение от имени пользователя, проверяя принадлежность
+        пользователя к организации
+      parameters:
+      - description: Данные предложения
+        in: body
+        name: proposal
+        required: true
+        schema:
+          $ref: '#/definitions/models.Proposal'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Предложение успешно создано
+          schema:
+            $ref: '#/definitions/models.Proposal'
+        "400":
+          description: Неверные данные или пользователь не принадлежит организации
+          schema:
+            type: string
+        "500":
+          description: Ошибка при создании предложения
+          schema:
+            type: string
+      summary: Создание предложения
+      tags:
+      - Proposals
+  /api/bids/status:
+    get:
+      description: Возвращает текущий статус предложения
+      parameters:
+      - description: ID предложения
+        in: query
+        name: bidId
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Текущий статус предложения
+          schema:
+            type: string
+        "400":
+          description: Неверный ID предложения
+          schema:
+            type: string
+        "500":
+          description: Ошибка при получении статуса предложения
+          schema:
+            type: string
+      summary: Получение статуса предложения
+      tags:
+      - Proposals
+  /api/ping:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает "ok" если сервис работает
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+      summary: Проверка состояния сервиса
+      tags:
+      - Health Check
+  /api/tenders:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает список тендеров по переданному типу сервиса
+      parameters:
+      - description: Тип сервиса
+        in: query
+        name: serviceType
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список тендеров
+          schema:
+            items:
+              $ref: '#/definitions/models.Tender'
+            type: array
+        "500":
+          description: Ошибка сервиса
+          schema:
+            type: string
+      summary: Получить список тендеров
+      tags:
+      - Tenders
+  /api/tenders/{tenderID}/edit:
+    patch:
+      consumes:
+      - application/json
+      description: Обновляет информацию о тендере по переданным данным и ID
+      parameters:
+      - description: ID тендера
+        in: path
+        name: tenderID
+        required: true
+        type: string
+      - description: Обновленный тендер
+        in: body
+        name: updatedTender
+        required: true
+        schema:
+          $ref: '#/definitions/models.Tender'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Обновленный тендер
+          schema:
+            $ref: '#/definitions/models.Tender'
+        "400":
+          description: Ошибка валидации
+          schema:
+            type: string
+        "500":
+          description: Ошибка сервиса
+          schema:
+            type: string
+      summary: Редактировать тендер
+      tags:
+      - Tenders
+  /api/tenders/{tenderId}/close:
+    put:
+      description: Закрытие тендера, чтобы он стал недоступен для всех пользователей,
+        кроме ответственных
+      parameters:
+      - description: ID тендера
+        in: path
+        name: tenderId
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Тендер успешно закрыт
+          schema:
+            type: string
+        "400":
+          description: Неверный ID тендера
+          schema:
+            type: string
+        "500":
+          description: Ошибка при закрытии тендера
+          schema:
+            type: string
+      summary: Закрытие тендера
+      tags:
+      - Tenders
+  /api/tenders/{tenderId}/publish:
+    put:
+      description: Публикация тендера, чтобы он стал доступен всем пользователям
+      parameters:
+      - description: ID тендера
+        in: path
+        name: tenderId
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Тендер успешно опубликован
+          schema:
+            type: string
+        "400":
+          description: Неверный ID тендера
+          schema:
+            type: string
+        "500":
+          description: Ошибка при публикации тендера
+          schema:
+            type: string
+      summary: Публикация тендера
+      tags:
+      - Tenders
+  /api/tenders/{tenderId}/rollback/{version}:
+    put:
+      consumes:
+      - application/json
+      description: Откат тендера до определенной версии по его ID
+      parameters:
+      - description: ID тендера
+        in: path
+        name: tenderId
+        required: true
+        type: string
+      - description: Версия тендера для отката
+        in: path
+        name: version
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Откатанный тендер
+          schema:
+            $ref: '#/definitions/models.Tender'
+        "400":
+          description: Неверный ID тендера или версия
+          schema:
+            type: string
+        "500":
+          description: Ошибка сервиса
+          schema:
+            type: string
+      summary: Откатить тендер до указанной версии
+      tags:
+      - Tenders
+  /api/tenders/my:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает список тендеров, созданных пользователем с указанным
+        именем
+      parameters:
+      - description: Имя пользователя
+        in: query
+        name: username
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список тендеров
+          schema:
+            items:
+              $ref: '#/definitions/models.Tender'
+            type: array
+        "500":
+          description: Ошибка сервиса
+          schema:
+            type: string
+      summary: Получить мои тендеры
+      tags:
+      - Tenders
+  /api/tenders/new:
+    post:
+      consumes:
+      - application/json
+      description: Создает новый тендер на основе переданных данных
+      parameters:
+      - description: Тендер
+        in: body
+        name: tender
+        required: true
+        schema:
+          $ref: '#/definitions/models.Tender'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Созданный тендер
+          schema:
+            $ref: '#/definitions/models.Tender'
+        "400":
+          description: Ошибка валидации
+          schema:
+            type: string
+        "500":
+          description: Ошибка сервиса
+          schema:
+            type: string
+      summary: Создать новый тендер
+      tags:
+      - Tenders
+  /api/tenders/status:
+    get:
+      description: Возвращает текущий статус тендера
+      parameters:
+      - description: ID тендера
+        in: query
+        name: tenderId
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Текущий статус тендера
+          schema:
+            type: string
+        "400":
+          description: Неверный ID тендера
+          schema:
+            type: string
+        "500":
+          description: Ошибка при получении статуса тендера
+          schema:
+            type: string
+      summary: Получение статуса тендера
+      tags:
+      - Tenders
+swagger: "2.0"

@@ -1,0 +1,37 @@
+version: '3'
+
+networks:
+  deploy-guide-dev:
+    driver: bridge
+
+services:
+  db:
+    container_name: db
+    image: postgres:16
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: Avito
+    networks:
+      - deploy-guide-dev
+    volumes:
+      - db_postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  backend:
+    container_name: backend
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    networks:
+      - deploy-guide-dev
+    depends_on:
+      - db
+    restart: unless-stopped
+
+volumes:
+  db_postgres_data:
